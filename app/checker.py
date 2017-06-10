@@ -27,7 +27,7 @@ def work_check(users, slack):
 
 				mail_date = datetime(*(parsedate(last_mail.mail_date)[:6]))
 				print 'found change on {} : {}'.format(user.channel, mail_date)
-				if (datetime.now() - mail_date).total_seconds() > 300:
+				if (datetime.now() - mail_date).total_seconds() < 300:
 
 					noti_msg = last_mail.compose_noti_msg()
 
