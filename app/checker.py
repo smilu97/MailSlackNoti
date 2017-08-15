@@ -15,7 +15,10 @@ def work_check(users, slack):
 			try:
 				last_mail = get_last_mail(user.host, user.username, user.password)
 			except Exception as e:
-				print 'Failed to receive last mail: {}'.format(str(e))
+				print 'Failed to receive last mail of {}: {}'.format(user.username, str(e))
+				continue
+
+			if not last_mail:
 				continue
 
 			last_mail_id = last_mail.id if last_mail else 'None'

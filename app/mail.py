@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-import poplib, email, mimetypes
+import poplib, email, mimetypes, base64
 
 from email import Header
 
@@ -19,9 +19,22 @@ class Mail(object):
 	def compose_noti_msg(self):
 		return 'From: {}\nTitle: {}'.format(self.mail_from, self.mail_subject)
 
+def decode_mail_string(s):
+	res = ''
+	for ta in s.split('\t'):
+		if ta[0] == '=' and ta[-1] == '=':
+			tae = ta.split('?')
+			try:
+				res += unicode(base64.b64decode(tae[3], tae[1])).encode('utf8')
+			except:
+				res += ta
+		else:
+			res += ta
+	return res
+
 def decode_header(header_msg):
 	result = Header.decode_header(header_msg)
-	return ''.join(t[0] for t in result)
+	return decode_mail_string(''.join(t[0] for t in result))
 
 def get_last_mail(host, username, password):
 	try:
@@ -36,12 +49,16 @@ def get_last_mail(host, username, password):
 	msg_num, t_size = mbox.stat()
 
 	try:
+		if msg_num <= 0:
+			return None
+			
 		server_msg, body, octets = mbox.retr(msg_num) # Retrieve last mail
 		msg = email.message_from_string('\n'.join(body))
 
-		mail_from    = decode_header(msg['from'])
-		mail_to      = decode_header(msg['to'])
-		mail_subject = decode_header(msg['subject'])
+		mail_from    = decode_mail_string(msg['from'])
+		mail_to      = decode_mail_string(msg['to'])
+		mail_subject = decode_mail_string(msg['subject'])
+
 		mail_date    = msg['date']
 
 		return Mail(mail_from, mail_to, mail_subject, mail_date)
